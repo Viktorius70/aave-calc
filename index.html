@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0e14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Aave V3</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111827'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='34' fill='%2338bdf8'%3EA%3C/text%3E%3C/svg%3E">
+<style>
+  :root{--bg:#0b0e14;--card:#141923;--in:#1d2433;--txt:#eef2f7;--mut:#8b95a7;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8;--brd:#263044}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;padding:10px;background:var(--bg);color:var(--txt);font:14px/1.35 -apple-system,system-ui,sans-serif;max-width:460px;margin-inline:auto}
+  .card{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .hf{font-size:32px;font-weight:800;letter-spacing:-0.5px;line-height:1}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .mut{color:var(--mut)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd);font-size:12px}
+  .stats b{display:block;font-size:14px;color:var(--txt);margin-top:1px}
+  .btn{background:var(--in);color:var(--acc);border:1px solid var(--brd);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn:active{opacity:.7}
+  .btn:disabled{opacity:.45;cursor:default}
+  .wbar{display:flex;gap:6px;align-items:center}
+  select{background:var(--in);color:var(--txt);border:1px solid var(--brd);border-radius:8px;padding:7px 6px;font-size:12px;font-weight:600;outline:none}
+  .win{flex:1;min-width:0;background:var(--in);color:var(--txt);border:1px solid var(--brd);border-radius:8px;padding:7px 8px;font-size:12px;font-family:ui-monospace,monospace;outline:none}
+  .win:focus,input[type=text]:focus{border-color:var(--acc)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .chip{display:inline-flex;align-items:center;gap:5px;background:var(--in);border:1px solid var(--brd);color:var(--mut);border-radius:99px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer}
+  .chip.act{border-color:var(--acc);color:var(--txt);background:#172536}
+  .chip .del{color:var(--mut);font-size:13px;line-height:1;padding-left:2px}
+  .meta{font-size:11px;color:var(--mut);margin-top:6px;line-height:1.4;word-break:break-word}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;color:var(--mut);font-weight:600;text-align:left;padding:0 3px 6px}
+  td{padding:3px}
+  .asset{font-weight:700;font-size:13px;width:40px}
+  td input[type=text],.grid3 input[type=text],.rescue input[type=text]{width:100%;background:var(--in);color:var(--txt);border:1px solid var(--brd);border-radius:8px;padding:8px 6px;font-size:14px;font-weight:600;text-align:right;outline:none}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--brd);font-size:13px}
+  .row:last-child{border-bottom:0;padding-bottom:0}
+  .row b{font-size:13px}
+  .sl-head{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:2px}
+  input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 8px}
+  details summary{cursor:pointer;font-size:12px;color:var(--mut);font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details summary::-webkit-details-marker{display:none}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+  .lbl{font-size:11px;color:var(--mut);margin-bottom:3px;display:block}
+  .rescue{margin-top:8px;padding-top:8px;border-top:1px solid var(--brd);font-size:12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+  .rescue input[type=text]{width:58px;padding:5px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="wbar">
+    <select id="chainSel" aria-label="Сеть">
+      <option value="base">Base</option>
+      <option value="arb">Arbitrum</option>
+      <option value="eth">Ethereum</option>
+      <option value="op">Optimism</option>
+      <option value="pol">Polygon</option>
+    </select>
+    <input id="walletIn" class="win" type="text" placeholder="0x... адрес кошелька" autocomplete="off" spellcheck="false">
+    <button id="btnSync" class="btn" type="button">↻</button>
+  </div>
+  <div id="chips" class="chips"></div>
+  <div id="syncMeta" class="meta">Вставьте адрес 0x… для синхронизации Aave V3</div>
+</div>
+
+<div class="card">
+  <div class="top">
+    <div>
+      <div class="mut" style="font-size:11px">HEALTH FACTOR</div>
+      <div id="hfVal" class="hf ok">—</div>
+    </div>
+    <div style="text-align:right">
+      <button id="btnPrices" class="btn" type="button">↻ Цены</button>
+      <div id="priceStatus" class="mut" style="font-size:11px;margin-top:4px">Локально</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="mut">Залог<b id="collVal">$0</b></div>
+    <div class="mut">Долг<b id="debtVal">$0</b></div>
+    <div class="mut">Капитал<b id="eqVal">$0</b></div>
+  </div>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Актив</th><th style="text-align:right">Цена $</th><th style="text-align:right">Залог</th><th style="text-align:right">Долг</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="asset">ETH</td>
+        <td><input id="ethP" type="text" inputmode="decimal" value="3000"></td>
+        <td><input id="ethC" type="text" inputmode="decimal" value="0"></td>
+        <td><input id="ethD" type="text" inputmode="decimal" value="0"></td>
+      </tr>
+      <tr>
+        <td class="asset">BTC</td>
+        <td><input id="btcP" type="text" inputmode="decimal" value="90000"></td>
+        <td><input id="btcC" type="text" inputmode="decimal" value="0"></td>
+        <td><input id="btcD" type="text" inputmode="decimal" value="0"></td>
+      </tr>
+      <tr>
+        <td class="asset">USD</td>
+        <td class="mut" style="text-align:right;padding-right:8px">1.00</td>
+        <td><input id="usdC" type="text" inputmode="decimal" value="0"></td>
+        <td><input id="usdD" type="text" inputmode="decimal" value="0"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="row"><span class="mut">Ликвидация ETH</span><b id="liqEth">—</b></div>
+  <div class="row"><span class="mut">Ликвидация BTC</span><b id="liqBtc">—</b></div>
+  <div class="row"><span class="mut">Обвал ETH + BTC вместе</span><b id="liqMkt">—</b></div>
+</div>
+
+<div class="card">
+  <div class="top" style="margin-bottom:4px">
+    <span class="mut" style="font-size:12px;font-weight:600">Стресс-тест цены</span>
+    <button id="resetSim" class="btn" type="button" style="padding:3px 8px;display:none">Сброс</button>
+  </div>
+  <div class="sl-head"><span>ETH</span><b id="simEthLbl">0%</b></div>
+  <input id="simEth" type="range" min="-70" max="100" step="1" value="0">
+  <div class="sl-head"><span>BTC</span><b id="simBtcLbl">0%</b></div>
+  <input id="simBtc" type="range" min="-70" max="100" step="1" value="0">
+</div>
+
+<div class="card">
+  <details>
+    <summary><span>Параметры LT% и план спасения</span><span>▾</span></summary>
+    <div class="grid3">
+      <div><span class="lbl">LT ETH %</span><input id="ltEth" type="text" inputmode="decimal" value="82.5"></div>
+      <div><span class="lbl">LT BTC %</span><input id="ltBtc" type="text" inputmode="decimal" value="78"></div>
+      <div><span class="lbl">LT USD %</span><input id="ltUsd" type="text" inputmode="decimal" value="78"></div>
+    </div>
+    <div class="rescue">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="mut">Цель HF</span>
+        <input id="targetHf" type="text" inputmode="decimal" value="1.5">
+      </div>
+      <div id="rescueTxt" style="text-align:right;font-weight:600">—</div>
+    </div>
+  </details>
+</div>
+
+<script>
+const KEY = 'aave_v3_compact_v2';
+const FIELDS = ['ethP','btcP','ethC','ethD','btcC','btcD','usdC','usdD','ltEth','ltBtc','ltUsd','targetHf'];
+const MULTICALL3 = '0xcA11bde05977b3631167028862bE2a173976CA11';
+const CHAINS = {
+  base: { name: 'Base',     pap: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D', rpcs: ['https://mainnet.base.org','https://base-rpc.publicnode.com','https://1rpc.io/base'] },
+  arb:  { name: 'Arbitrum', pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://arb1.arbitrum.io/rpc','https://arbitrum-one-rpc.publicnode.com'] },
+  eth:  { name: 'Ethereum', pap: '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e', rpcs: ['https://ethereum-rpc.publicnode.com','https://1rpc.io/eth'] },
+  op:   { name: 'Optimism', pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://mainnet.optimism.io','https://optimism-rpc.publicnode.com'] },
+  pol:  { name: 'Polygon',  pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://polygon-bor-rpc.publicnode.com','https://1rpc.io/matic'] }
+};
+
+const MC_ABI = ['function aggregate3(tuple(address target, bool allowFailure, bytes callData)[] calls) view returns (tuple(bool success, bytes returnData)[])'];
+const PAP_ABI = [
+  'function getPool() view returns (address)',
+  'function getPoolDataProvider() view returns (address)',
+  'function getPriceOracle() view returns (address)'
+];
+const POOL_ABI = [
+  'function getUserAccountData(address) view returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256 availableBorrowsBase, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor)',
+  'function getUserEMode(address) view returns (uint256)'
+];
+const DP_ABI = [
+  'function getAllReservesTokens() view returns (tuple(string symbol, address tokenAddress)[])',
+  'function getUserReserveData(address,address) view returns (uint256 currentATokenBalance, uint256 currentStableDebt, uint256 currentVariableDebt, uint256 principalStableDebt, uint256 scaledVariableDebt, uint256 stableBorrowRate, uint256 liquidityRate, uint40 stableRateLastUpdated, bool usageAsCollateralEnabled)',
+  'function getReserveConfigurationData(address) view returns (uint256 decimals, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus, uint256 reserveFactor, bool usageAsCollateralEnabled, bool borrowingEnabled, bool stableBorrowRateEnabled, bool isActive, bool isFrozen)'
+];
+const ORACLE_ABI = ['function getAssetsPrices(address[]) view returns (uint256[])'];
+
+const $ = id => document.getElementById(id);
+const num = id => {
+  const v = parseFloat(String($(id).value).replace(',', '.').replace(/\s+/g, ''));
+  return Number.isFinite(v) ? v : 0;
+};
+const fmtInt = n => Math.round(n).toLocaleString('ru-RU');
+const fmtUsd = n => '$' + fmtInt(n);
+const fmtQty = (n, d) => (!n || Math.abs(n) < 1e-10) ? '0' : n.toFixed(d).replace(/\.?0+$/, '');
+const shortAddr = a => a.slice(0, 6) + '…' + a.slice(-4);
+const isAddr = s => /^0x[a-fA-F0-9]{40}$/.test((s || '').trim());
+
+let state = { chain: 'base', active: '', wallets: [], fields: {} };
+let syncTimer = null;
+
+function readFields() {
+  const f = {};
+  FIELDS.forEach(id => f[id] = $(id).value);
+  return f;
+}
+function applyFields(f) {
+  if (!f) return;
+  FIELDS.forEach(id => { if (f[id] !== undefined) $(id).value = f[id]; });
+}
+
+function save() {
+  try {
+    state.chain = $('chainSel').value;
+    state.fields = readFields();
+    const w = state.wallets.find(x => x.addr === state.active);
+    if (w) { w.data = state.fields; w.chain = state.chain; }
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      state = Object.assign({ chain: 'base', active: '', wallets: [], fields: {} }, parsed);
+      if (CHAINS[state.chain]) $('chainSel').value = state.chain;
+      applyFields(state.fields);
+      if (state.active) {
+        $('walletIn').value = state.active;
+        const w = state.wallets.find(x => x.addr === state.active);
+        if (w && w.meta) $('syncMeta').textContent = w.meta;
+      }
+    }
+  } catch (e) {}
+}
+
+function renderChips() {
+  const box = $('chips');
+  box.innerHTML = '';
+  state.wallets.forEach(w => {
+    const isAct = w.addr === state.active;
+    const el = document.createElement('div');
+    el.className = 'chip' + (isAct ? ' act' : '');
+    const lbl = document.createElement('span');
+    lbl.textContent = w.name || shortAddr(w.addr);
+    el.appendChild(lbl);
+    el.addEventListener('click', () => {
+      if (w.addr === state.active) {
+        const n = prompt('Короткое имя для ' + shortAddr(w.addr), w.name || '');
+        if (n !== null) { w.name = n.trim(); save(); renderChips(); }
+      } else {
+        selectWallet(w.addr, true);
+      }
+    });
+    if (isAct) {
+      const del = document.createElement('span');
+      del.className = 'del';
+      del.textContent = '×';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        state.wallets = state.wallets.filter(x => x.addr !== w.addr);
+        state.active = state.wallets[0] ? state.wallets[0].addr : '';
+        $('walletIn').value = state.active;
+        if (state.active) selectWallet(state.active, false);
+        else { $('syncMeta').textContent = 'Вставьте адрес 0x… для синхронизации Aave V3'; save(); renderChips(); }
+      });
+      el.appendChild(del);
+    }
+    box.appendChild(el);
+  });
+}
+
+function selectWallet(addr, doSync) {
+  const low = addr.toLowerCase();
+  const w = state.wallets.find(x => x.addr === low);
+  if (!w) return;
+  state.active = low;
+  $('walletIn').value = low;
+  if (w.chain && CHAINS[w.chain]) $('chainSel').value = w.chain;
+  if (w.data) applyFields(w.data);
+  if (w.meta) $('syncMeta').textContent = w.meta;
+  $('simEth').value = 0; $('simBtc').value = 0;
+  calc(true);
+  renderChips();
+  if (doSync) syncWallet();
+}
+
+function upsertWallet(rawAddr) {
+  const low = rawAddr.trim().toLowerCase();
+  if (!isAddr(low)) return null;
+  let w = state.wallets.find(x => x.addr === low);
+  if (!w) {
+    w = { addr: low, name: '', chain: $('chainSel').value, data: null, meta: '' };
+    state.wallets.push(w);
+  }
+  state.active = low;
+  save();
+  renderChips();
+  return w;
+}
+
+function loadEthers() {
+  if (window.ethers) return Promise.resolve(window.ethers);
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js',
+    'https://unpkg.com/ethers@6.13.4/dist/ethers.umd.min.js'
+  ];
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    const next = () => {
+      if (i >= urls.length) return reject(new Error('Нет сети для загрузки ethers.js'));
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = () => window.ethers ? resolve(window.ethers) : next();
+      s.onerror = next;
+      document.head.appendChild(s);
+    };
+    next();
+  });
+}
+
+async function multicall(net, calls) {
+  const mc = new ethers.Interface(MC_ABI);
+  const data = mc.encodeFunctionData('aggregate3', [calls]);
+  let lastErr;
+  for (const rpc of net.rpcs) {
+    try {
+      const r = await fetch(rpc, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: MULTICALL3, data }, 'latest'] })
+      });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message || 'RPC error');
+      if (!j.result || j.result === '0x') throw new Error('Пустой ответ RPC');
+      return mc.decodeFunctionResult('aggregate3', j.result)[0];
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('RPC недоступен');
+}
+
+function classify(sym) {
+  const s = (sym || '').toUpperCase();
+  if (s.includes('BTC')) return 'BTC';
+  if (s.includes('ETH')) return 'ETH';
+  if (/^(USDC|USDBC|USDT|DAI|GHO|LUSD|FRAX|SDAI|USDE|SUSDE|CRVUSD|PYUSD|USDS|SUSDS|RLUSD)$/.test(s) || s.includes('USD')) return 'USD';
+  return 'OTHER';
+}
+
+async function syncWallet() {
+  const raw = $('walletIn').value.trim();
+  if (!isAddr(raw)) {
+    $('syncMeta').textContent = 'Введите корректный 0x-адрес (42 символа)';
+    return;
+  }
+  const w = upsertWallet(raw);
+  const netKey = $('chainSel').value;
+  const net = CHAINS[netKey];
+  const btn = $('btnSync');
+  btn.disabled = true;
+  $('syncMeta').textContent = `Синхронизация ${net.name}…`;
+
+  try {
+    await loadEthers();
+    const pap = new ethers.Interface(PAP_ABI);
+    const poolIf = new ethers.Interface(POOL_ABI);
+    const dpIf = new ethers.Interface(DP_ABI);
+    const orIf = new ethers.Interface(ORACLE_ABI);
+
+    const r1 = await multicall(net, [
+      { target: net.pap, allowFailure: false, callData: pap.encodeFunctionData('getPool') },
+      { target: net.pap, allowFailure: false, callData: pap.encodeFunctionData('getPoolDataProvider') },
+      { target: net.pap, allowFailure: false, callData: pap.encodeFunctionData('getPriceOracle') }
+    ]);
+    const poolAddr = pap.decodeFunctionResult('getPool', r1[0].returnData)[0];
+    const dpAddr = pap.decodeFunctionResult('getPoolDataProvider', r1[1].returnData)[0];
+    const oracleAddr = pap.decodeFunctionResult('getPriceOracle', r1[2].returnData)[0];
+
+    const r2 = await multicall(net, [
+      { target: dpAddr, allowFailure: false, callData: dpIf.encodeFunctionData('getAllReservesTokens') },
+      { target: poolAddr, allowFailure: false, callData: poolIf.encodeFunctionData('getUserAccountData', [w.addr]) },
+      { target: poolAddr, allowFailure: true, callData: poolIf.encodeFunctionData('getUserEMode', [w.addr]) }
+    ]);
+    const reserves = dpIf.decodeFunctionResult('getAllReservesTokens', r2[0].returnData)[0];
+    const acct = poolIf.decodeFunctionResult('getUserAccountData', r2[1].returnData);
+    const eMode = r2[2].success ? Number(poolIf.decodeFunctionResult('getUserEMode', r2[2].returnData)[0]) : 0;
+
+    const r3 = await multicall(net, reserves.map(res => ({
+      target: dpAddr, allowFailure: true,
+      callData: dpIf.encodeFunctionData('getUserReserveData', [res.tokenAddress, w.addr])
+    })));
+
+    const active = [];
+    let refEth = null, refBtc = null;
+    reserves.forEach((res, i) => {
+      const sym = res.symbol;
+      const addr = res.tokenAddress;
+      if (!refEth && /^W?ETH$/i.test(sym)) refEth = addr;
+      if (!refBtc && /^(cbBTC|WBTC|BTC\.b|tBTC)$/i.test(sym)) refBtc = addr;
+      if (!r3[i].success) return;
+      const u = dpIf.decodeFunctionResult('getUserReserveData', r3[i].returnData);
+      const aBal = u.currentATokenBalance;
+      const dBal = u.currentVariableDebt + u.currentStableDebt;
+      if (aBal > 0n || dBal > 0n) active.push({ sym, addr, aBal, dBal, asColl: u.usageAsCollateralEnabled });
+    });
+
+    const priceSet = [];
+    const addP = a => { if (a && !priceSet.includes(a)) priceSet.push(a); };
+    active.forEach(x => addP(x.addr));
+    addP(refEth); addP(refBtc);
+
+    const calls4 = [];
+    if (priceSet.length) {
+      calls4.push({ target: oracleAddr, allowFailure: false, callData: orIf.encodeFunctionData('getAssetsPrices', [priceSet]) });
+    }
+    active.forEach(x => calls4.push({
+      target: dpAddr, allowFailure: false,
+      callData: dpIf.encodeFunctionData('getReserveConfigurationData', [x.addr])
+    }));
+
+    const r4 = calls4.length ? await multicall(net, calls4) : [];
+    const priceMap = {};
+    if (priceSet.length && r4[0] && r4[0].success) {
+      const pArr = orIf.decodeFunctionResult('getAssetsPrices', r4[0].returnData)[0];
+      priceSet.forEach((a, idx) => priceMap[a.toLowerCase()] = Number(pArr[idx]) / 1e8);
+    }
+
+    const ethRefP = (refEth && priceMap[refEth.toLowerCase()]) || num('ethP') || 3000;
+    const btcRefP = (refBtc && priceMap[refBtc.toLowerCase()]) || num('btcP') || 90000;
+
+    let cE = 0, dE = 0, cB = 0, dB = 0, cU = 0, dU = 0;
+    let ethUsd = 0, btcUsd = 0, usdUsd = 0, ethW = 0, btcW = 0, usdW = 0;
+    const cList = [], dList = [], offColl = [], otherSyms = [];
+    const offset = priceSet.length ? 1 : 0;
+
+    active.forEach((x, idx) => {
+      const cfg = dpIf.decodeFunctionResult('getReserveConfigurationData', r4[offset + idx].returnData);
+      const dec = Number(cfg.decimals);
+      const lt = Number(cfg.liquidationThreshold) / 100;
+      const aNum = Number(ethers.formatUnits(x.aBal, dec));
+      const dNum = Number(ethers.formatUnits(x.dBal, dec));
+      const p = priceMap[x.addr.toLowerCase()] || 0;
+      const cVal = x.asColl ? aNum * p : 0;
+      const dVal = dNum * p;
+      const cls = classify(x.sym);
+
+      if (aNum > 0) {
+        if (x.asColl) cList.push(`${fmtQty(aNum, dec <= 6 ? 0 : 4)} ${x.sym}`);
+        else offColl.push(`${fmtQty(aNum, 3)} ${x.sym}`);
+      }
+      if (dNum > 0) dList.push(`${fmtQty(dNum, dec <= 6 ? 0 : 4)} ${x.sym}`);
+
+      if (cls === 'ETH') {
+        cE += cVal / ethRefP; dE += dVal / ethRefP;
+        ethUsd += cVal; ethW += cVal * lt;
+      } else if (cls === 'BTC') {
+        cB += cVal / btcRefP; dB += dVal / btcRefP;
+        btcUsd += cVal; btcW += cVal * lt;
+      } else {
+        cU += cVal; dU += dVal;
+        usdUsd += cVal; usdW += cVal * lt;
+        if (cls === 'OTHER' && (cVal > 1 || dVal > 1)) otherSyms.push(x.sym);
+      }
+    });
+
+    let ltE = ethUsd > 0 ? ethW / ethUsd : (num('ltEth') || 82.5);
+    let ltB = btcUsd > 0 ? btcW / btcUsd : (num('ltBtc') || 78);
+    let ltU = usdUsd > 0 ? usdW / usdUsd : (num('ltUsd') || 78);
+
+    const onChainLT = Number(acct.currentLiquidationThreshold) / 100;
+    const totUsd = ethUsd + btcUsd + usdUsd;
+    const calcLT = totUsd > 0 ? (ethW + btcW + usdW) / totUsd : 0;
+    if (totUsd > 0 && onChainLT > 0 && calcLT > 0 && Math.abs(onChainLT - calcLT) > 0.15) {
+      const k = onChainLT / calcLT;
+      if (ethUsd > 0) ltE = Math.min(99, ltE * k);
+      if (btcUsd > 0) ltB = Math.min(99, ltB * k);
+      if (usdUsd > 0) ltU = Math.min(99, ltU * k);
+    }
+
+    $('ethP').value = Math.round(ethRefP);
+    $('btcP').value = Math.round(btcRefP);
+    $('ethC').value = fmtQty(cE, 4);
+    $('ethD').value = fmtQty(dE, 4);
+    $('btcC').value = fmtQty(cB, 6);
+    $('btcD').value = fmtQty(dB, 6);
+    $('usdC').value = fmtQty(cU, 0);
+    $('usdD').value = fmtQty(dU, 0);
+    $('ltEth').value = fmtQty(ltE, 2);
+    $('ltBtc').value = fmtQty(ltB, 2);
+    $('ltUsd').value = fmtQty(ltU, 2);
+    $('simEth').value = 0; $('simBtc').value = 0;
+
+    const t = new Date();
+    const tm = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const hasDebt = acct.totalDebtBase > 0n;
+    const chainHf = hasDebt ? Number(ethers.formatUnits(acct.healthFactor, 18)).toFixed(2) : '∞';
+
+    let meta = '';
+    if (!active.length) {
+      meta = `${net.name} · ${tm} · Позиция Aave V3 пуста`;
+    } else {
+      const parts = [`${net.name} ${tm}`, `On-chain HF: ${chainHf}`];
+      if (eMode > 0) parts.push(`E-Mode #${eMode}`);
+      meta = parts.join(' · ');
+      if (cList.length) meta += ` | Залог: ${cList.join(', ')}`;
+      if (dList.length) meta += ` | Долг: ${dList.join(', ')}`;
+      if (offColl.length) meta += ` | Вне залога: ${offColl.join(', ')}`;
+      if (otherSyms.length) meta += ` | ⚠ ${otherSyms.join(', ')} учтены в USD`;
+    }
+
+    w.meta = meta;
+    $('syncMeta').textContent = meta;
+    $('priceStatus').textContent = `Aave ${tm}`;
+    calc(true);
+  } catch (e) {
+    $('syncMeta').textContent = 'Ошибка синхронизации: ' + (e.message || 'нет сети');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function calcLiq(cQty, dQty, lt, curP, wOther, dOther) {
+  const a = cQty * lt - dQty;
+  const b = dOther - wOther;
+  if (Math.abs(a) < 1e-12) return { text: 'Не зависит', cls: 'mut' };
+  const liqP = b / a;
+  if (a > 0) {
+    if (liqP <= 0) return { text: 'Безопасно', cls: 'ok' };
+    const pct = ((liqP - curP) / curP) * 100;
+    const sign = pct >= 0 ? '+' : '';
+    return { text: `$${fmtInt(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct > -15 ? 'bad' : pct > -30 ? 'warn' : 'ok' };
+  } else {
+    if (liqP <= 0) return { text: 'Уже ликв.', cls: 'bad' };
+    const pct = ((liqP - curP) / curP) * 100;
+    const sign = pct >= 0 ? '+' : '';
+    return { text: `↑ $${fmtInt(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct < 15 ? 'bad' : pct < 35 ? 'warn' : 'ok' };
+  }
+}
+
+function calc(shouldSave) {
+  if (shouldSave) save();
+  const sE = parseFloat($('simEth').value) || 0;
+  const sB = parseFloat($('simBtc').value) || 0;
+  $('resetSim').style.display = (sE || sB) ? 'inline-block' : 'none';
+
+  const baseE = Math.max(0.01, num('ethP'));
+  const baseB = Math.max(0.01, num('btcP'));
+  const pE = Math.max(0.01, baseE * (1 + sE / 100));
+  const pB = Math.max(0.01, baseB * (1 + sB / 100));
+
+  $('simEthLbl').textContent = `${sE > 0 ? '+' : ''}${sE}% ($${fmtInt(pE)})`;
+  $('simBtcLbl').textContent = `${sB > 0 ? '+' : ''}${sB}% ($${fmtInt(pB)})`;
+
+  const cE = num('ethC'), dE = num('ethD');
+  const cB = num('btcC'), dB = num('btcD');
+  const cU = num('usdC'), dU = num('usdD');
+  const ltE = num('ltEth') / 100, ltB = num('ltBtc') / 100, ltU = num('ltUsd') / 100;
+
+  const wE = cE * pE * ltE, wB = cB * pB * ltB, wU = cU * ltU;
+  const vE = dE * pE,       vB = dB * pB,       vU = dU;
+
+  const coll = cE * pE + cB * pB + cU;
+  const wColl = wE + wB + wU;
+  const debt = vE + vB + vU;
+  const hf = debt > 0 ? wColl / debt : Infinity;
+
+  $('collVal').textContent = fmtUsd(coll);
+  $('debtVal').textContent = fmtUsd(debt);
+  $('eqVal').textContent = fmtUsd(coll - debt);
+
+  const hfEl = $('hfVal');
+  hfEl.textContent = debt > 0 ? hf.toFixed(2) : '∞';
+  hfEl.className = 'hf ' + (hf < 1.15 ? 'bad' : hf < 1.45 ? 'warn' : 'ok');
+
+  const rE = calcLiq(cE, dE, ltE, pE, wB + wU, vB + vU);
+  const rB = calcLiq(cB, dB, ltB, pB, wE + wU, vE + vU);
+  $('liqEth').textContent = rE.text; $('liqEth').className = rE.cls;
+  $('liqBtc').textContent = rB.text; $('liqBtc').className = rB.cls;
+
+  const aMkt = (wE + wB) - (vE + vB);
+  const bMkt = vU - wU;
+  const mEl = $('liqMkt');
+  if (Math.abs(aMkt) < 1e-9) {
+    mEl.textContent = 'Не зависит'; mEl.className = 'mut';
+  } else {
+    const m = bMkt / aMkt;
+    if (aMkt > 0) {
+      if (m <= 0) { mEl.textContent = 'Безопасно'; mEl.className = 'ok'; }
+      else {
+        const drop = (m - 1) * 100;
+        mEl.textContent = `${drop >= 0 ? '+' : ''}${drop.toFixed(1)}%`;
+        mEl.className = drop > -20 ? 'bad' : drop > -35 ? 'warn' : 'ok';
+      }
+    } else {
+      if (m <= 0) { mEl.textContent = 'Уже ликв.'; mEl.className = 'bad'; }
+      else {
+        const rise = (m - 1) * 100;
+        mEl.textContent = `↑ ${rise >= 0 ? '+' : ''}${rise.toFixed(1)}%`;
+        mEl.className = rise < 20 ? 'bad' : rise < 40 ? 'warn' : 'ok';
+      }
+    }
+  }
+
+  const tHf = Math.max(1.01, num('targetHf') || 1.5);
+  const rTxt = $('rescueTxt');
+  if (debt <= 0 || hf >= tHf) {
+    rTxt.textContent = 'Норма (запас есть)';
+    rTxt.className = 'ok';
+  } else {
+    const repay = debt - wColl / tHf;
+    const addColl = (tHf * debt - wColl) / (ltE || 0.8);
+    rTxt.textContent = `Погасить ${fmtUsd(repay)} или долить ${fmtUsd(addColl)}`;
+    rTxt.className = 'warn';
+  }
+}
+
+async function fetchPrices() {
+  const st = $('priceStatus');
+  st.textContent = 'Загрузка...';
+  try {
+    let e, b;
+    try {
+      const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=%5B%22ETHUSDT%22,%22BTCUSDT%22%5D');
+      const data = await r.json();
+      e = parseFloat(data.find(x => x.symbol === 'ETHUSDT').price);
+      b = parseFloat(data.find(x => x.symbol === 'BTCUSDT').price);
+    } catch {
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd');
+      const data = await r.json();
+      e = data.ethereum.usd;
+      b = data.bitcoin.usd;
+    }
+    if (e && b) {
+      $('ethP').value = Math.round(e);
+      $('btcP').value = Math.round(b);
+      calc(true);
+      const t = new Date();
+      st.textContent = `✓ ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    }
+  } catch {
+    st.textContent = 'Нет сети';
+  }
+}
+
+$('walletIn').addEventListener('input', () => {
+  clearTimeout(syncTimer);
+  const v = $('walletIn').value.trim();
+  if (isAddr(v)) syncTimer = setTimeout(syncWallet, 250);
+});
+$('walletIn').addEventListener('keydown', e => { if (e.key === 'Enter') syncWallet(); });
+$('btnSync').addEventListener('click', syncWallet);
+$('chainSel').addEventListener('change', () => {
+  save();
+  if (isAddr($('walletIn').value)) syncWallet();
+});
+
+FIELDS.forEach(id => $(id).addEventListener('input', () => calc(true)));
+['simEth','simBtc'].forEach(id => $(id).addEventListener('input', () => calc(false)));
+$('resetSim').addEventListener('click', () => { $('simEth').value = 0; $('simBtc').value = 0; calc(false); });
+$('btnPrices').addEventListener('click', fetchPrices);
+
+load();
+renderChips();
+calc(false);
+</script>
+</body>
+</html>
