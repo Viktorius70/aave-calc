@@ -33,19 +33,19 @@
   table{width:100%;border-collapse:collapse}
   th{font-size:11px;color:var(--mut);font-weight:600;text-align:left;padding:0 3px 6px}
   td{padding:3px}
-  .asset{font-weight:700;font-size:13px;width:40px}
-  td input[type=text],.grid3 input[type=text],.rescue input[type=text]{width:100%;background:var(--in);color:var(--txt);border:1px solid var(--brd);border-radius:8px;padding:8px 6px;font-size:14px;font-weight:600;text-align:right;outline:none}
+  .asset{font-weight:700;font-size:12px;width:44px}
+  td input[type=text],.grid4 input[type=text],.rescue input[type=text]{width:100%;background:var(--in);color:var(--txt);border:1px solid var(--brd);border-radius:8px;padding:7px 5px;font-size:13px;font-weight:600;text-align:right;outline:none}
   .row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--brd);font-size:13px}
   .row:last-child{border-bottom:0;padding-bottom:0}
   .row b{font-size:13px}
-  .sl-head{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:2px}
-  input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 8px}
+  .sl-head{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:1px}
+  input[type=range]{width:100%;accent-color:var(--acc);margin:3px 0 7px}
   details summary{cursor:pointer;font-size:12px;color:var(--mut);font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
   details summary::-webkit-details-marker{display:none}
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-  .lbl{font-size:11px;color:var(--mut);margin-bottom:3px;display:block}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}
+  .lbl{font-size:10px;color:var(--mut);margin-bottom:3px;display:block}
   .rescue{margin-top:8px;padding-top:8px;border-top:1px solid var(--brd);font-size:12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
-  .rescue input[type=text]{width:58px;padding:5px;text-align:center}
+  .rescue input[type=text]{width:56px;padding:5px;text-align:center}
 </style>
 </head>
 <body>
@@ -54,6 +54,7 @@
   <div class="wbar">
     <select id="chainSel" aria-label="Сеть">
       <option value="base">Base</option>
+      <option value="avax">Avalanche</option>
       <option value="arb">Arbitrum</option>
       <option value="eth">Ethereum</option>
       <option value="op">Optimism</option>
@@ -103,8 +104,14 @@
         <td><input id="btcD" type="text" inputmode="decimal" value="0"></td>
       </tr>
       <tr>
+        <td class="asset">AVAX</td>
+        <td><input id="avaxP" type="text" inputmode="decimal" value="20"></td>
+        <td><input id="avaxC" type="text" inputmode="decimal" value="0"></td>
+        <td><input id="avaxD" type="text" inputmode="decimal" value="0"></td>
+      </tr>
+      <tr>
         <td class="asset">USD</td>
-        <td class="mut" style="text-align:right;padding-right:8px">1.00</td>
+        <td class="mut" style="text-align:right;padding-right:6px">1.00</td>
         <td><input id="usdC" type="text" inputmode="decimal" value="0"></td>
         <td><input id="usdD" type="text" inputmode="decimal" value="0"></td>
       </tr>
@@ -115,7 +122,8 @@
 <div class="card">
   <div class="row"><span class="mut">Ликвидация ETH</span><b id="liqEth">—</b></div>
   <div class="row"><span class="mut">Ликвидация BTC</span><b id="liqBtc">—</b></div>
-  <div class="row"><span class="mut">Обвал ETH + BTC вместе</span><b id="liqMkt">—</b></div>
+  <div class="row"><span class="mut">Ликвидация AVAX</span><b id="liqAvax">—</b></div>
+  <div class="row"><span class="mut">Обвал крипто вместе</span><b id="liqMkt">—</b></div>
 </div>
 
 <div class="card">
@@ -127,15 +135,18 @@
   <input id="simEth" type="range" min="-70" max="100" step="1" value="0">
   <div class="sl-head"><span>BTC</span><b id="simBtcLbl">0%</b></div>
   <input id="simBtc" type="range" min="-70" max="100" step="1" value="0">
+  <div class="sl-head"><span>AVAX</span><b id="simAvaxLbl">0%</b></div>
+  <input id="simAvax" type="range" min="-70" max="100" step="1" value="0">
 </div>
 
 <div class="card">
   <details>
     <summary><span>Параметры LT% и план спасения</span><span>▾</span></summary>
-    <div class="grid3">
-      <div><span class="lbl">LT ETH %</span><input id="ltEth" type="text" inputmode="decimal" value="82.5"></div>
-      <div><span class="lbl">LT BTC %</span><input id="ltBtc" type="text" inputmode="decimal" value="78"></div>
-      <div><span class="lbl">LT USD %</span><input id="ltUsd" type="text" inputmode="decimal" value="78"></div>
+    <div class="grid4">
+      <div><span class="lbl">LT ETH%</span><input id="ltEth" type="text" inputmode="decimal" value="82.5"></div>
+      <div><span class="lbl">LT BTC%</span><input id="ltBtc" type="text" inputmode="decimal" value="78"></div>
+      <div><span class="lbl">LT AVAX%</span><input id="ltAvax" type="text" inputmode="decimal" value="73"></div>
+      <div><span class="lbl">LT USD%</span><input id="ltUsd" type="text" inputmode="decimal" value="78"></div>
     </div>
     <div class="rescue">
       <div style="display:flex;align-items:center;gap:6px">
@@ -149,14 +160,16 @@
 
 <script>
 const KEY = 'aave_v3_compact_v2';
-const FIELDS = ['ethP','btcP','ethC','ethD','btcC','btcD','usdC','usdD','ltEth','ltBtc','ltUsd','targetHf'];
+const BAL_FIELDS = ['ethC','ethD','btcC','btcD','avaxC','avaxD','usdC','usdD'];
+const FIELDS = ['ethP','btcP','avaxP','ethC','ethD','btcC','btcD','avaxC','avaxD','usdC','usdD','ltEth','ltBtc','ltAvax','ltUsd','targetHf'];
 const MULTICALL3 = '0xcA11bde05977b3631167028862bE2a173976CA11';
 const CHAINS = {
-  base: { name: 'Base',     pap: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D', rpcs: ['https://mainnet.base.org','https://base-rpc.publicnode.com','https://1rpc.io/base'] },
-  arb:  { name: 'Arbitrum', pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://arb1.arbitrum.io/rpc','https://arbitrum-one-rpc.publicnode.com'] },
-  eth:  { name: 'Ethereum', pap: '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e', rpcs: ['https://ethereum-rpc.publicnode.com','https://1rpc.io/eth'] },
-  op:   { name: 'Optimism', pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://mainnet.optimism.io','https://optimism-rpc.publicnode.com'] },
-  pol:  { name: 'Polygon',  pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://polygon-bor-rpc.publicnode.com','https://1rpc.io/matic'] }
+  base: { name: 'Base',      pap: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D', rpcs: ['https://mainnet.base.org','https://base-rpc.publicnode.com','https://1rpc.io/base'] },
+  avax: { name: 'Avalanche', pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://api.avax.network/ext/bc/C/rpc','https://avalanche-c-chain-rpc.publicnode.com','https://1rpc.io/avax/c'] },
+  arb:  { name: 'Arbitrum',  pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://arb1.arbitrum.io/rpc','https://arbitrum-one-rpc.publicnode.com'] },
+  eth:  { name: 'Ethereum',  pap: '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e', rpcs: ['https://ethereum-rpc.publicnode.com','https://1rpc.io/eth'] },
+  op:   { name: 'Optimism',  pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://mainnet.optimism.io','https://optimism-rpc.publicnode.com'] },
+  pol:  { name: 'Polygon',   pap: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb', rpcs: ['https://polygon-bor-rpc.publicnode.com','https://1rpc.io/matic'] }
 };
 
 const MC_ABI = ['function aggregate3(tuple(address target, bool allowFailure, bytes callData)[] calls) view returns (tuple(bool success, bytes returnData)[])'];
@@ -183,6 +196,7 @@ const num = id => {
 };
 const fmtInt = n => Math.round(n).toLocaleString('ru-RU');
 const fmtUsd = n => '$' + fmtInt(n);
+const fmtPrice = n => n >= 500 ? fmtInt(n) : (n >= 100 ? n.toFixed(1) : n.toFixed(2));
 const fmtQty = (n, d) => (!n || Math.abs(n) < 1e-10) ? '0' : n.toFixed(d).replace(/\.?0+$/, '');
 const shortAddr = a => a.slice(0, 6) + '…' + a.slice(-4);
 const isAddr = s => /^0x[a-fA-F0-9]{40}$/.test((s || '').trim());
@@ -197,7 +211,13 @@ function readFields() {
 }
 function applyFields(f) {
   if (!f) return;
+  BAL_FIELDS.forEach(id => { $(id).value = f[id] !== undefined ? f[id] : '0'; });
   FIELDS.forEach(id => { if (f[id] !== undefined) $(id).value = f[id]; });
+}
+function resetSliders() {
+  $('simEth').value = 0;
+  $('simBtc').value = 0;
+  $('simAvax').value = 0;
 }
 
 function save() {
@@ -273,7 +293,7 @@ function selectWallet(addr, doSync) {
   if (w.chain && CHAINS[w.chain]) $('chainSel').value = w.chain;
   if (w.data) applyFields(w.data);
   if (w.meta) $('syncMeta').textContent = w.meta;
-  $('simEth').value = 0; $('simBtc').value = 0;
+  resetSliders();
   calc(true);
   renderChips();
   if (doSync) syncWallet();
@@ -335,9 +355,10 @@ async function multicall(net, calls) {
 
 function classify(sym) {
   const s = (sym || '').toUpperCase();
+  if (s.includes('AVAX')) return 'AVAX';
   if (s.includes('BTC')) return 'BTC';
   if (s.includes('ETH')) return 'ETH';
-  if (/^(USDC|USDBC|USDT|DAI|GHO|LUSD|FRAX|SDAI|USDE|SUSDE|CRVUSD|PYUSD|USDS|SUSDS|RLUSD)$/.test(s) || s.includes('USD')) return 'USD';
+  if (/^(USDC|USDBC|USDT|DAI|GHO|LUSD|FRAX|SDAI|USDE|SUSDE|CRVUSD|PYUSD|USDS|SUSDS|RLUSD|AUSD)(\.E)?$/.test(s) || s.includes('USD')) return 'USD';
   return 'OTHER';
 }
 
@@ -385,12 +406,13 @@ async function syncWallet() {
     })));
 
     const active = [];
-    let refEth = null, refBtc = null;
+    let refEth = null, refBtc = null, refAvax = null;
     reserves.forEach((res, i) => {
       const sym = res.symbol;
       const addr = res.tokenAddress;
-      if (!refEth && /^W?ETH$/i.test(sym)) refEth = addr;
-      if (!refBtc && /^(cbBTC|WBTC|BTC\.b|tBTC)$/i.test(sym)) refBtc = addr;
+      if (!refEth && /^W?ETH(\.e)?$/i.test(sym)) refEth = addr;
+      if (!refBtc && /^(cbBTC|WBTC(\.e)?|BTC\.b|tBTC)$/i.test(sym)) refBtc = addr;
+      if (!refAvax && /^W?AVAX$/i.test(sym)) refAvax = addr;
       if (!r3[i].success) return;
       const u = dpIf.decodeFunctionResult('getUserReserveData', r3[i].returnData);
       const aBal = u.currentATokenBalance;
@@ -401,7 +423,7 @@ async function syncWallet() {
     const priceSet = [];
     const addP = a => { if (a && !priceSet.includes(a)) priceSet.push(a); };
     active.forEach(x => addP(x.addr));
-    addP(refEth); addP(refBtc);
+    addP(refEth); addP(refBtc); addP(refAvax);
 
     const calls4 = [];
     if (priceSet.length) {
@@ -421,9 +443,11 @@ async function syncWallet() {
 
     const ethRefP = (refEth && priceMap[refEth.toLowerCase()]) || num('ethP') || 3000;
     const btcRefP = (refBtc && priceMap[refBtc.toLowerCase()]) || num('btcP') || 90000;
+    const avaxRefP = (refAvax && priceMap[refAvax.toLowerCase()]) || num('avaxP') || 20;
 
-    let cE = 0, dE = 0, cB = 0, dB = 0, cU = 0, dU = 0;
-    let ethUsd = 0, btcUsd = 0, usdUsd = 0, ethW = 0, btcW = 0, usdW = 0;
+    let cE = 0, dE = 0, cB = 0, dB = 0, cA = 0, dA = 0, cU = 0, dU = 0;
+    let ethUsd = 0, btcUsd = 0, avaxUsd = 0, usdUsd = 0;
+    let ethW = 0, btcW = 0, avaxW = 0, usdW = 0;
     const cList = [], dList = [], offColl = [], otherSyms = [];
     const offset = priceSet.length ? 1 : 0;
 
@@ -450,6 +474,9 @@ async function syncWallet() {
       } else if (cls === 'BTC') {
         cB += cVal / btcRefP; dB += dVal / btcRefP;
         btcUsd += cVal; btcW += cVal * lt;
+      } else if (cls === 'AVAX') {
+        cA += cVal / avaxRefP; dA += dVal / avaxRefP;
+        avaxUsd += cVal; avaxW += cVal * lt;
       } else {
         cU += cVal; dU += dVal;
         usdUsd += cVal; usdW += cVal * lt;
@@ -459,30 +486,36 @@ async function syncWallet() {
 
     let ltE = ethUsd > 0 ? ethW / ethUsd : (num('ltEth') || 82.5);
     let ltB = btcUsd > 0 ? btcW / btcUsd : (num('ltBtc') || 78);
+    let ltA = avaxUsd > 0 ? avaxW / avaxUsd : (num('ltAvax') || 73);
     let ltU = usdUsd > 0 ? usdW / usdUsd : (num('ltUsd') || 78);
 
     const onChainLT = Number(acct.currentLiquidationThreshold) / 100;
-    const totUsd = ethUsd + btcUsd + usdUsd;
-    const calcLT = totUsd > 0 ? (ethW + btcW + usdW) / totUsd : 0;
+    const totUsd = ethUsd + btcUsd + avaxUsd + usdUsd;
+    const calcLT = totUsd > 0 ? (ethW + btcW + avaxW + usdW) / totUsd : 0;
     if (totUsd > 0 && onChainLT > 0 && calcLT > 0 && Math.abs(onChainLT - calcLT) > 0.15) {
       const k = onChainLT / calcLT;
       if (ethUsd > 0) ltE = Math.min(99, ltE * k);
       if (btcUsd > 0) ltB = Math.min(99, ltB * k);
+      if (avaxUsd > 0) ltA = Math.min(99, ltA * k);
       if (usdUsd > 0) ltU = Math.min(99, ltU * k);
     }
 
     $('ethP').value = Math.round(ethRefP);
     $('btcP').value = Math.round(btcRefP);
+    $('avaxP').value = avaxRefP.toFixed(2);
     $('ethC').value = fmtQty(cE, 4);
     $('ethD').value = fmtQty(dE, 4);
     $('btcC').value = fmtQty(cB, 6);
     $('btcD').value = fmtQty(dB, 6);
+    $('avaxC').value = fmtQty(cA, 3);
+    $('avaxD').value = fmtQty(dA, 3);
     $('usdC').value = fmtQty(cU, 0);
     $('usdD').value = fmtQty(dU, 0);
     $('ltEth').value = fmtQty(ltE, 2);
     $('ltBtc').value = fmtQty(ltB, 2);
+    $('ltAvax').value = fmtQty(ltA, 2);
     $('ltUsd').value = fmtQty(ltU, 2);
-    $('simEth').value = 0; $('simBtc').value = 0;
+    resetSliders();
 
     const t = new Date();
     const tm = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
@@ -522,12 +555,12 @@ function calcLiq(cQty, dQty, lt, curP, wOther, dOther) {
     if (liqP <= 0) return { text: 'Безопасно', cls: 'ok' };
     const pct = ((liqP - curP) / curP) * 100;
     const sign = pct >= 0 ? '+' : '';
-    return { text: `$${fmtInt(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct > -15 ? 'bad' : pct > -30 ? 'warn' : 'ok' };
+    return { text: `$${fmtPrice(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct > -15 ? 'bad' : pct > -30 ? 'warn' : 'ok' };
   } else {
     if (liqP <= 0) return { text: 'Уже ликв.', cls: 'bad' };
     const pct = ((liqP - curP) / curP) * 100;
     const sign = pct >= 0 ? '+' : '';
-    return { text: `↑ $${fmtInt(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct < 15 ? 'bad' : pct < 35 ? 'warn' : 'ok' };
+    return { text: `↑ $${fmtPrice(liqP)} (${sign}${pct.toFixed(1)}%)`, cls: pct < 15 ? 'bad' : pct < 35 ? 'warn' : 'ok' };
   }
 }
 
@@ -535,27 +568,32 @@ function calc(shouldSave) {
   if (shouldSave) save();
   const sE = parseFloat($('simEth').value) || 0;
   const sB = parseFloat($('simBtc').value) || 0;
-  $('resetSim').style.display = (sE || sB) ? 'inline-block' : 'none';
+  const sA = parseFloat($('simAvax').value) || 0;
+  $('resetSim').style.display = (sE || sB || sA) ? 'inline-block' : 'none';
 
   const baseE = Math.max(0.01, num('ethP'));
   const baseB = Math.max(0.01, num('btcP'));
+  const baseA = Math.max(0.01, num('avaxP'));
   const pE = Math.max(0.01, baseE * (1 + sE / 100));
   const pB = Math.max(0.01, baseB * (1 + sB / 100));
+  const pA = Math.max(0.01, baseA * (1 + sA / 100));
 
-  $('simEthLbl').textContent = `${sE > 0 ? '+' : ''}${sE}% ($${fmtInt(pE)})`;
-  $('simBtcLbl').textContent = `${sB > 0 ? '+' : ''}${sB}% ($${fmtInt(pB)})`;
+  $('simEthLbl').textContent = `${sE > 0 ? '+' : ''}${sE}% ($${fmtPrice(pE)})`;
+  $('simBtcLbl').textContent = `${sB > 0 ? '+' : ''}${sB}% ($${fmtPrice(pB)})`;
+  $('simAvaxLbl').textContent = `${sA > 0 ? '+' : ''}${sA}% ($${fmtPrice(pA)})`;
 
   const cE = num('ethC'), dE = num('ethD');
   const cB = num('btcC'), dB = num('btcD');
+  const cA = num('avaxC'), dA = num('avaxD');
   const cU = num('usdC'), dU = num('usdD');
-  const ltE = num('ltEth') / 100, ltB = num('ltBtc') / 100, ltU = num('ltUsd') / 100;
+  const ltE = num('ltEth') / 100, ltB = num('ltBtc') / 100, ltA = num('ltAvax') / 100, ltU = num('ltUsd') / 100;
 
-  const wE = cE * pE * ltE, wB = cB * pB * ltB, wU = cU * ltU;
-  const vE = dE * pE,       vB = dB * pB,       vU = dU;
+  const wE = cE * pE * ltE, wB = cB * pB * ltB, wA = cA * pA * ltA, wU = cU * ltU;
+  const vE = dE * pE,       vB = dB * pB,       vA = dA * pA,       vU = dU;
 
-  const coll = cE * pE + cB * pB + cU;
-  const wColl = wE + wB + wU;
-  const debt = vE + vB + vU;
+  const coll = cE * pE + cB * pB + cA * pA + cU;
+  const wColl = wE + wB + wA + wU;
+  const debt = vE + vB + vA + vU;
   const hf = debt > 0 ? wColl / debt : Infinity;
 
   $('collVal').textContent = fmtUsd(coll);
@@ -566,12 +604,14 @@ function calc(shouldSave) {
   hfEl.textContent = debt > 0 ? hf.toFixed(2) : '∞';
   hfEl.className = 'hf ' + (hf < 1.15 ? 'bad' : hf < 1.45 ? 'warn' : 'ok');
 
-  const rE = calcLiq(cE, dE, ltE, pE, wB + wU, vB + vU);
-  const rB = calcLiq(cB, dB, ltB, pB, wE + wU, vE + vU);
+  const rE = calcLiq(cE, dE, ltE, pE, wB + wA + wU, vB + vA + vU);
+  const rB = calcLiq(cB, dB, ltB, pB, wE + wA + wU, vE + vA + vU);
+  const rA = calcLiq(cA, dA, ltA, pA, wE + wB + wU, vE + vB + vU);
   $('liqEth').textContent = rE.text; $('liqEth').className = rE.cls;
   $('liqBtc').textContent = rB.text; $('liqBtc').className = rB.cls;
+  $('liqAvax').textContent = rA.text; $('liqAvax').className = rA.cls;
 
-  const aMkt = (wE + wB) - (vE + vB);
+  const aMkt = (wE + wB + wA) - (vE + vB + vA);
   const bMkt = vU - wU;
   const mEl = $('liqMkt');
   if (Math.abs(aMkt) < 1e-9) {
@@ -601,8 +641,9 @@ function calc(shouldSave) {
     rTxt.textContent = 'Норма (запас есть)';
     rTxt.className = 'ok';
   } else {
+    const avgLt = coll > 0 && wColl > 0 ? (wColl / coll) : (ltE || 0.75);
     const repay = debt - wColl / tHf;
-    const addColl = (tHf * debt - wColl) / (ltE || 0.8);
+    const addColl = (tHf * debt - wColl) / avgLt;
     rTxt.textContent = `Погасить ${fmtUsd(repay)} или долить ${fmtUsd(addColl)}`;
     rTxt.className = 'warn';
   }
@@ -612,21 +653,24 @@ async function fetchPrices() {
   const st = $('priceStatus');
   st.textContent = 'Загрузка...';
   try {
-    let e, b;
+    let e, b, a;
     try {
-      const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=%5B%22ETHUSDT%22,%22BTCUSDT%22%5D');
+      const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=%5B%22ETHUSDT%22,%22BTCUSDT%22,%22AVAXUSDT%22%5D');
       const data = await r.json();
       e = parseFloat(data.find(x => x.symbol === 'ETHUSDT').price);
       b = parseFloat(data.find(x => x.symbol === 'BTCUSDT').price);
+      a = parseFloat(data.find(x => x.symbol === 'AVAXUSDT').price);
     } catch {
-      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd');
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,avalanche-2&vs_currencies=usd');
       const data = await r.json();
       e = data.ethereum.usd;
       b = data.bitcoin.usd;
+      a = data['avalanche-2'].usd;
     }
-    if (e && b) {
+    if (e && b && a) {
       $('ethP').value = Math.round(e);
       $('btcP').value = Math.round(b);
+      $('avaxP').value = a.toFixed(2);
       calc(true);
       const t = new Date();
       st.textContent = `✓ ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
@@ -649,8 +693,8 @@ $('chainSel').addEventListener('change', () => {
 });
 
 FIELDS.forEach(id => $(id).addEventListener('input', () => calc(true)));
-['simEth','simBtc'].forEach(id => $(id).addEventListener('input', () => calc(false)));
-$('resetSim').addEventListener('click', () => { $('simEth').value = 0; $('simBtc').value = 0; calc(false); });
+['simEth','simBtc','simAvax'].forEach(id => $(id).addEventListener('input', () => calc(false)));
+$('resetSim').addEventListener('click', () => { resetSliders(); calc(false); });
 $('btnPrices').addEventListener('click', fetchPrices);
 
 load();
